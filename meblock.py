@@ -204,7 +204,7 @@ class ThrownBlock:
 # --- メインのAppクラス ---
 class App:
     def __init__(self):
-        pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Reverse Block Breaker", fps=60)
+        pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Me, Block", fps=60)
         pyxel.mouse(True)
         self.setup_sound()
         self.stage = 1
