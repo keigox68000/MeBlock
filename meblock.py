@@ -138,7 +138,7 @@ class Block:
             pyxel.rectb(self.x, self.y, self.w, self.h, 1)  # 枠線
 
 
-# --- 投げるブロッククラス (回転機能を追加) ---
+# --- 投げるブロッククラス (pyxel.bltの回転機能を使用) ---
 class ThrownBlock:
     """プレイヤーが投げるブロックを管理するクラス"""
 
@@ -178,37 +178,27 @@ class ThrownBlock:
         if not self.is_active:
             return
 
-        # ブロックの中心座標
-        cx = self.x + self.w / 2
-        cy = self.y + self.h / 2
+        # --- ここからが変更された描画ロジック ---
+        # 描画したいブロックをイメージバンク1の一時的な領域(0,0)に描画
+        # (毎フレーム描画するのは非効率だが、色が異なるブロックに対応する簡単な方法)
+        pyxel.images[1].cls(0)  # 透明色(0)でクリア
+        pyxel.images[1].rect(0, 0, self.w, self.h, self.color)
+        pyxel.images[1].rectb(0, 0, self.w, self.h, 1)  # 枠線も描画
 
-        # 回転角度をラジアンに変換
-        angle_rad = math.radians(self.rotation_angle)
-        cos_a = math.cos(angle_rad)
-        sin_a = math.sin(angle_rad)
-
-        # ブロックの4つの角の元座標 (中心からの相対座標)
-        half_w = self.w / 2
-        half_h = self.h / 2
-        points = [
-            (-half_w, -half_h),
-            (half_w, -half_h),
-            (half_w, half_h),
-            (-half_w, half_h),
-        ]
-
-        # 回転後の座標を計算
-        rotated_points = []
-        for p_x, p_y in points:
-            new_x = p_x * cos_a - p_y * sin_a
-            new_y = p_x * sin_a + p_y * cos_a
-            rotated_points.append((cx + new_x, cy + new_y))
-
-        # 4本の線で四角形を描画
-        for i in range(4):
-            p1 = rotated_points[i]
-            p2 = rotated_points[(i + 1) % 4]
-            pyxel.line(p1[0], p1[1], p2[0], p2[1], self.color)
+        # bltを使って回転描画
+        # (ブロックの中心を軸に回転させるため、描画位置をオフセットする)
+        pyxel.blt(
+            self.x,
+            self.y,
+            1,  # イメージバンク1を使用
+            0,
+            0,
+            self.w,
+            self.h,  # ソースの座標とサイズ
+            0,  # 透明色
+            rotate=self.rotation_angle,
+        )
+        # --- ここまでが変更された描画ロジック ---
 
 
 # --- メインのAppクラス ---
@@ -310,6 +300,7 @@ class App:
                 continue
 
             # パドルとの衝突判定
+            # (衝突判定は回転を考慮しないAABBで行っています)
             if (
                 thrown.x < self.paddle.x + self.paddle.w
                 and thrown.x + thrown.w > self.paddle.x
@@ -322,6 +313,7 @@ class App:
                 continue
 
             # ボールとの衝突判定
+            # (衝突判定は回転を考慮しないAABBで行っています)
             for ball in self.balls:
                 if not ball.is_active:
                     continue
