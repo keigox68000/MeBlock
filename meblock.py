@@ -365,7 +365,7 @@ class App:
         pyxel.cls(7)
 
         if self.game_state == "start":
-            self.draw_title_screen("REVERSE BLOCK BREAKER", "CLICK or ENTER to START")
+            self.draw_title_screen("Me, Block", "CLICK or ENTER to START")
             return
 
         if self.game_state == "clear":
